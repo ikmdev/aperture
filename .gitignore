@@ -87,7 +87,7 @@ fabric.properties
 
 .metadata
 bin/
-tmp/
+tmp/ls
 *.tmp
 *.bak
 *.swp
@@ -230,3 +230,4 @@ Temporary Items
 htmlReport
 /.mvn/settings.xml
 /aperture.log.2026-07-28.0.gz
+/data

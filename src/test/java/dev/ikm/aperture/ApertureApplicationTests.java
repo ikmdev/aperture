@@ -3,6 +3,7 @@ package dev.ikm.aperture;
 import dev.ikm.aperture.capability.CapabilityStatement;
 import dev.ikm.aperture.search.SearchRequest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
@@ -14,19 +15,25 @@ import java.util.List;
 
 
 @SpringBootTest(classes = ApertureApplication.class,
-		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-		properties = {"app.api.key=c4bba3d8-cd4c-481f-9151-4bc68903bb98"})
+		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ApertureApplicationTests {
 
 	@LocalServerPort
 	private int port;
+
+	@Value("${app.api.key}")
+	private String apiKey;
+
+	@Value("${app.database.directory}")
+	private String databaseDirectory;
+
 
 	Path ikeDB = Paths.get(System.getProperty("user.dir"), "target").resolve("data").resolve("solor-export-1.0.0-SNAPSHOT-reasoned-sa");
 
 	private RestTestClient buildRestTestClient() {
 		return RestTestClient.bindToServer()
 				.baseUrl("http://localhost:" + port)
-				.defaultHeader("X-API-KEY", "c4bba3d8-cd4c-481f-9151-4bc68903bb98")
+				.defaultHeader("X-API-KEY", apiKey)
 				.build();
 	}
 
