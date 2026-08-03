@@ -10,8 +10,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(classes = ApertureApplication.class,
 		webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-class ApertureApplicationTests {
+class ApertureApplicationIT {
 
 	@LocalServerPort
 	private int port;
@@ -45,8 +43,12 @@ class ApertureApplicationTests {
 	}
 
 	@Test
-	void searchSmokeTest() {
-		SearchRequest searchRequest = new SearchRequest(List.of(), List.of(), List.of(), List.of());
+	void searchSmokeTestWithNoTerminologyIds() {
+		SearchRequest searchRequest = new SearchRequest(
+				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"),
+				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"),
+				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"),
+				List.of(), List.of(), List.of(), List.of());
 
 		// Create REST Client
 		RestTestClient client = buildRestTestClient();

@@ -43,9 +43,9 @@ public enum StampCoordinate {
 	}
 
 	public static StampCoordinateRecord toRecord(UUID uuid) {
-		for (StampCoordinate coord : StampCoordinate.values()) {
-			if (coord.uuids.contains(uuid)) {
-				return coord.getRecord();
+		for (StampCoordinate coordinate : StampCoordinate.values()) {
+			if (coordinate.uuids.contains(uuid)) {
+				return coordinate.getRecord();
 			}
 		}
 		return DEV_LATEST.getRecord();

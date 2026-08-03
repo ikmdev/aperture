@@ -34,9 +34,9 @@ public enum NavigationCoordinate {
 	}
 
 	public static NavigationCoordinateRecord toRecord(UUID uuid) {
-		for (NavigationCoordinate coord : NavigationCoordinate.values()) {
-			if (coord.uuids.contains(uuid)) {
-				return coord.getRecord();
+		for (NavigationCoordinate coordinate : NavigationCoordinate.values()) {
+			if (coordinate.uuids.contains(uuid)) {
+				return coordinate.getRecord();
 			}
 		}
 		return INFERRED.getRecord();

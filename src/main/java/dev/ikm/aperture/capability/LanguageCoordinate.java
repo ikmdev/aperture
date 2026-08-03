@@ -41,9 +41,9 @@ public enum LanguageCoordinate {
 	}
 
 	public static LanguageCoordinateRecord toRecord(UUID uuid) {
-		for (LanguageCoordinate coord : LanguageCoordinate.values()) {
-			if (coord.uuids.contains(uuid)) {
-				return coord.getRecord();
+		for (LanguageCoordinate coordinate : LanguageCoordinate.values()) {
+			if (coordinate.uuids.contains(uuid)) {
+				return coordinate.getRecord();
 			}
 		}
 		return US_ENG_REG.getRecord();
