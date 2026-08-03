@@ -56,7 +56,29 @@ public class IkeDatabaseConfig {
 	@PreDestroy
 	public void shutdown() {
 		LOG.info("Database shutdown started");
-		PrimitiveData.stop();
+		try {
+			PrimitiveData.stop();
+		}  catch (Throwable t) {
+			// Traverse the cause chain to see if it's the specific Lucene AlreadyClosedException
+			boolean isAlreadyClosedException = false;
+			Throwable cause = t;
+			while (cause != null) {
+				if (cause.getClass().getName().contains("AlreadyClosedException")) {
+					isAlreadyClosedException = true;
+					break;
+				}
+				cause = cause.getCause();
+			}
+
+			if (isAlreadyClosedException) {
+				// We expect this during test teardowns due to context race conditions. Safe to ignore.
+				LOG.debug("Expected Lucene AlreadyClosedException. Ignoring.");
+			} else {
+				// If it's some other problem (data corruption, IO error, etc.), bubble it up so the test fails!
+				LOG.error("Unexpected error during Database shutdown", t);
+				throw t; // or throw new RuntimeException(t); if catching Exception
+			}
+		}
 		LOG.info("Database shutdown completed");
 	}
 

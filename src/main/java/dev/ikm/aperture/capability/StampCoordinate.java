@@ -18,20 +18,20 @@ public enum StampCoordinate {
 	MASTER_LATEST_ACTIVE_ONLY("Latest Active on the Master Path", List.of(UUID.fromString("4fc5f3f3-704a-44a2-88b6-7ce1b84c7422")), Coordinates.Stamp.MasterLatestActiveOnly()),
 	;
 
-	private final String name;
+	private final String displayName;
 	private final List<UUID> uuids;
 	private final StampCoordinateRecord record;
 
-	StampCoordinate(String name, List<UUID> uuids, StampCoordinateRecord record) {
-		this.name = name;
+	StampCoordinate(String displayName, List<UUID> uuids, StampCoordinateRecord record) {
+		this.displayName = displayName;
 		this.uuids = uuids;
 		this.record = record;
 		PublicId publicId = PublicIds.of(uuids);
 		int nid = Entity.nid(publicId);
 	}
 
-	public String getName() {
-		return this.name;
+	public String getDisplayName() {
+		return this.displayName;
 	}
 
 	public List<UUID> getUuids() {

@@ -18,18 +18,18 @@ public enum LanguageCoordinate {
 	ESP_REG("Spanish Language Regular Name", List.of(UUID.fromString("7333bbe8-0857-48cd-8479-0cdbf4f8f831")), Coordinates.Language.SpanishPreferredName()),
 	ESP_FQN("Spanish Language Fully Qualified Name", List.of(UUID.fromString("c79e417c-d061-46fd-addd-de2cec751299")), Coordinates.Language.SpanishFullyQualifiedName());
 
-	private final String name;
+	private final String displayName;
 	private final List<UUID> uuids;
 	private final LanguageCoordinateRecord record;
 
-	LanguageCoordinate(String name, List<UUID> uuids, LanguageCoordinateRecord record) {
-		this.name = name;
+	LanguageCoordinate(String displayName, List<UUID> uuids, LanguageCoordinateRecord record) {
+		this.displayName = displayName;
 		this.uuids = uuids;
 		this.record = record;
 	}
 
-	public String getName() {
-		return this.name;
+	public String getDisplayName() {
+		return this.displayName;
 	}
 
 	public List<UUID> getUuids() {

@@ -14,19 +14,19 @@ public class CapabilityService {
 
 	public List<Coordinate> getSupportedLanguages() {
 		return Arrays.stream(LanguageCoordinate.values())
-				.map(languageCoordinate -> new Coordinate(languageCoordinate.name(), languageCoordinate.getUuids()))
+				.map(languageCoordinate -> new Coordinate(languageCoordinate.getDisplayName(), languageCoordinate.getUuids()))
 				.toList();
 	}
 
 	public List<Coordinate> getSupportedNavigations() {
 		return Arrays.stream(NavigationCoordinate.values())
-				.map(navigationCoordinate -> new Coordinate(navigationCoordinate.name(), navigationCoordinate.getUuids()))
+				.map(navigationCoordinate -> new Coordinate(navigationCoordinate.getDisplayName(), navigationCoordinate.getUuids()))
 				.toList();
 	}
 
 	public List<Coordinate> getSupportedStamps() {
 		return Arrays.stream(StampCoordinate.values())
-				.map(stampCoordinate -> new Coordinate(stampCoordinate.name(), stampCoordinate.getUuids()))
+				.map(stampCoordinate -> new Coordinate(stampCoordinate.getDisplayName(), stampCoordinate.getUuids()))
 				.toList();
 	}
 
