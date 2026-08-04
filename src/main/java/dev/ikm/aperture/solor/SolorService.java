@@ -10,18 +10,20 @@ public class SolorService {
 
 	private static final Logger LOG = LoggerFactory.getLogger(SolorService.class);
 
-
-	private final IkeService ikeService;
 	private final RdfService rdfService;
 
 	@Autowired
-	public SolorService(IkeService ikeService, RdfService rdfService) {
-		this.ikeService = ikeService;
+	public SolorService(RdfService rdfService) {
 		this.rdfService = rdfService;
 	}
 
-	public String constructSolorGraph(SolorRequest context) {
-		return "Solor";
+	public String constructSolorGraph(SolorRequest solorRequest) {
+		if (solorRequest.conceptUUIDs().isEmpty()) {
+			LOG.info("No concept UUIDs provided, returning empty Solor graph");
+			return rdfService.generateEmptySolorGraph();
+		} else {
+			return rdfService.generateSolorGraph(solorRequest);
+		}
 	}
 
 }

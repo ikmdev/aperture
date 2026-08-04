@@ -25,4 +25,8 @@ public record SearchRequest(
 		loincIds = Objects.requireNonNullElse(loincIds, Collections.emptyList());
 		ikeIds = Objects.requireNonNullElse(ikeIds, Collections.emptyList());
 	}
+
+	public boolean isEmpty() {
+		return sctIds.isEmpty() && rxnormIds.isEmpty() && loincIds.isEmpty() && ikeIds.isEmpty();
+	}
 }
