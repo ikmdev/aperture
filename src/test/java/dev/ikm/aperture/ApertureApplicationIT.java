@@ -2,6 +2,7 @@ package dev.ikm.aperture;
 
 import dev.ikm.aperture.capability.*;
 import dev.ikm.aperture.search.SearchRequest;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,42 +46,24 @@ class ApertureApplicationIT {
 				.build();
 	}
 
-
-	@Test
-	void contextLoads() {
-		// Checking to see that the Spring Boot Test context has loaded
-	}
-
-	@Test
-	void givenSearchRequestWithNoTerminologyIdentifiers_whenSearchQueried_thenEmptySearchResponseWithRDFPrefixesIsReturned() {
-		// Given a Search Request with no terminology ids
-		RestTestClient client = buildRestTestClient();
-		SearchRequest searchRequest = new SearchRequest(
-				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
-				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
-				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
-				List.of(), List.of(), List.of(), List.of());
-
-		// When Search query is posted from client
-		String response = client.post()
+	private String postSearchRequest(SearchRequest request) {
+		return buildRestTestClient()
+				.post()
 				.uri("/api/search")
 				.contentType(MediaType.APPLICATION_JSON)
 				.accept(MediaType.parseMediaType("text/turtle"))
-				.body(searchRequest)
+				.body(request)
 				.exchange()
 				.expectStatus().isOk()
 				.expectHeader().contentTypeCompatibleWith("text/turtle")
 				.returnResult(String.class)
 				.getResponseBody();
+	}
 
-		LOG.info("RDF Graph Response payload:\n{}", response);
 
-		// Then an empty search response string is returned with proper minimal RDF prefixes
-		assertThat(response).isNotNull();
-		long nonPrefixLines = response.lines()
-				.filter(line -> !line.trim().isEmpty() && !line.startsWith("@prefix"))
-				.count();
-		assertThat(nonPrefixLines).isEqualTo(3);
+	@Test
+	void contextLoads() {
+		// Checking to see that the Spring Boot Test context has loaded
 	}
 
 	@Test
@@ -123,6 +106,62 @@ class ApertureApplicationIT {
 				coordinate.name().equals("Latest on the Development Path") &&
 						coordinate.uuids().contains(UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"))))
 				.isNotEmpty();
+	}
+
+	@Test
+	void givenSearchRequestWithNoTerminologyIdentifiers_whenSearchQueried_thenEmptySearchResponseWithRDFPrefixesIsReturned() {
+		// Given a Search Request with no terminology ids
+		SearchRequest searchRequest = new SearchRequest(
+				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
+				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
+				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
+				List.of(), List.of(), List.of(), List.of());
+
+		// When Search query is posted from client
+		String response = postSearchRequest(searchRequest);
+
+		LOG.info("No Terminology Identifiers RDF Graph Response payload:\n{}", response);
+
+		// Then an empty search response string is returned with proper minimal RDF prefixes
+		assertThat(response).isNotNull();
+
+		// Check for baseline prefixes
+		long nonPrefixLines = response.lines()
+				.filter(line -> !line.trim().isEmpty() && !line.startsWith("@prefix"))
+				.count();
+		assertThat(nonPrefixLines).isEqualTo(3);
+	}
+
+	@Test
+	void givenSearchRequestWithDeepVeinThrombosisSnomedConceptIdentifier_whenSearchQueried_thenSearchResponseWithRDFGraphIsReturned() {
+		// Given a Search Request with no terminology ids
+		SearchRequest searchRequest = new SearchRequest(
+				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
+				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
+				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
+				List.of(128053003L),
+				List.of(), List.of(), List.of());
+
+		// When Search query is posted from client
+		String response = postSearchRequest(searchRequest);
+
+		LOG.info("DVT Snomed CT Identifier RDF Graph Response payload:\n{}", response);
+
+		// Then an empty search response string is returned with proper minimal RDF prefixes
+		assertThat(response).isNotNull();
+
+		// Check for Identifier Semantic
+		assertThat(response).contains("128053003");
+
+		// Check for FQN Description Semantic
+		assertThat(response).contains("Deep vein thrombosis");
+
+		//Check for baseline prefixes
+		long nonPrefixLines = response.lines()
+				.filter(line -> !line.trim().isEmpty() && !line.startsWith("@prefix"))
+				.count();
+		assertThat(nonPrefixLines).isEqualTo(3);
+
 	}
 
 }

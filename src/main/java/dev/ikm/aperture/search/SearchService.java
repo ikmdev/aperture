@@ -1,7 +1,7 @@
 package dev.ikm.aperture.search;
 
 import dev.ikm.aperture.solor.SolorRequest;
-import dev.ikm.aperture.solor.SolorMapperService;
+import dev.ikm.aperture.solor.SolorMapper;
 import dev.ikm.aperture.solor.SolorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ public class SearchService {
 	}
 
 	public String search(SearchRequest searchRequest) {
-		SolorRequest solorRequest = SolorMapperService.toSolorRequest(searchRequest);
+		SolorRequest solorRequest = SolorMapper.toSolorRequest(searchRequest);
 		return solorService.constructSolorGraph(solorRequest);
 	}
 
