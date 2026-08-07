@@ -9,19 +9,25 @@ import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class ConceptProcessor implements KnowledgeProcessor{
 
 	@Override
 	public void process(SolorGenerationContext solorGenerationContext, PublicId conceptId) {
-		int nid = Entity.nid(conceptId);
 		SolorRequest solorRequest = solorGenerationContext.getSolorRequest();
+		int nid = Entity.nid(conceptId);
+		UUID conceptUUID = conceptId.asUuidList().get(0);
+		Model model = solorGenerationContext.getSolorModel();
 
+		// Get label based on calculated Text Description
 		String label = solorRequest.languageCalculatorWithCache().getDescriptionText(nid).orElse("TEXT NOT FOUND");
 
-		Model model = solorGenerationContext.getSolorModel();
-		model.createResource(SolorVocabulary.NAMESPACE + conceptId.asUuidList().get(0))
+		// Add Concept Resource to the model
+		model.createResource(SolorVocabulary.NAMESPACE + conceptUUID)
 				.addProperty(RDF.type, SolorVocabulary.CONCEPT)
+				.addProperty(SolorVocabulary.HAS_STATUS, processStatus(solorGenerationContext, conceptId))
 				.addProperty(RDFS.label, label);
 	}
 }

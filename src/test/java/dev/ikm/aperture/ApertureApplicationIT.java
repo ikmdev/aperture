@@ -2,6 +2,11 @@ package dev.ikm.aperture;
 
 import dev.ikm.aperture.capability.*;
 import dev.ikm.aperture.search.SearchRequest;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -16,6 +21,7 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.io.StringReader;
 import java.util.List;
 import java.util.UUID;
 
@@ -145,22 +151,73 @@ class ApertureApplicationIT {
 		// When Search query is posted from client
 		String response = postSearchRequest(searchRequest);
 
-		LOG.info("DVT Snomed CT Identifier RDF Graph Response payload:\n{}", response);
-
 		// Then an empty search response string is returned with proper minimal RDF prefixes
 		assertThat(response).isNotNull();
 
-		// Check for Identifier Semantic
-		assertThat(response).contains("128053003");
+		LOG.info("DVT Snomed CT Identifier RDF Graph Response payload:\n{}", response);
 
-		// Check for FQN Description Semantic
-		assertThat(response).contains("Deep vein thrombosis");
+		// Parse the Turtle string back into a Queryable Graph Model
+		Model responseModel = ModelFactory.createDefaultModel();
+		responseModel.read(new StringReader(response), null, "TURTLE");
 
-		//Check for baseline prefixes
-		long nonPrefixLines = response.lines()
-				.filter(line -> !line.trim().isEmpty() && !line.startsWith("@prefix"))
-				.count();
-		assertThat(nonPrefixLines).isEqualTo(3);
+		// 1. Simple Property Check: Ensure the main concept has the correct label
+		String conceptUri = "https://www.ikm.dev/solor/41bfe458-c5fa-54af-8889-2465e8639d95";
+		String label = responseModel.getResource(conceptUri)
+				.getProperty(RDFS.label).getString();
+		assertThat(label).isEqualTo("Deep venous thrombosis");
+
+		// 2. Complex Graph Shape Check: Use SPARQL ASK to find nested blank nodes
+		// This completely ignores the order/formatting of the RDF strings
+		String askIdentifierShape = """
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				ASK {
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 solor:has_identifier ?idNode .
+					?idNode solor:has_identifier_value "128053003" .
+					?idNode solor:has_identifier_system solor:ab9a0e0a-6359-5462-859c-96c3d4ef2341 .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askIdentifierShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain the SCTID paired with its system").isTrue();
+		}
+
+		// 3. Another SPARQL ASK for the Fully Qualified Name description shape
+		String askDescriptionShape = """
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				ASK {
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 solor:has_description ?descNode .
+					?descNode solor:has_fully_qualified_name "Deep venous thrombosis (disorder)"@en-US .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askDescriptionShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain the EN-US fully qualified name").isTrue();
+		}
+
+		// 4. SPARQL ASK for multiple Synonyms and their specific Case Sensitivity metadata
+		String askSynonymsShape = """
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				ASK {
+					# The main concept
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 
+					        solor:has_description ?descNode1 , 
+					                              ?descNode2 , 
+					                              ?descNode3 .
+					
+					# Synonym 1: 'Deep vein thrombosis' (Case insensitive)
+					?descNode1 solor:has_synonym "Deep vein thrombosis"@en-US ;
+					           solor:has_case_sensitivity solor:ecea41a2-f596-3d98-99d1-771b667e55b8 .
+					
+					# Synonym 2: 'DVT' (Case sensitive)
+					?descNode2 solor:has_synonym "DVT"@en-US ;
+					           solor:has_case_sensitivity solor:0def37bc-7e1b-384b-a6a3-3e3ceee9c52e .
+					           
+					# Synonym 3: 'DVT - Deep vein thrombosis' (Case sensitive)
+					?descNode3 solor:has_synonym "DVT - Deep vein thrombosis"@en-US ;
+					           solor:has_case_sensitivity solor:0def37bc-7e1b-384b-a6a3-3e3ceee9c52e .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askSynonymsShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain specific synonyms paired with correct case sensitivity").isTrue();
+		}
 
 	}
 

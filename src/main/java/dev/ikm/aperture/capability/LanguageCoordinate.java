@@ -48,4 +48,27 @@ public enum LanguageCoordinate {
 		}
 		return US_ENG_REG.getRecord();
 	}
+
+	public String getISOCode() {
+		for (LanguageCoordinate coordinate : LanguageCoordinate.values()) {
+			if (coordinate ==  US_ENG_REG || coordinate == US_ENG_FQN) {
+				return "en-US";
+			} else if (coordinate == GB_ENG_REG || coordinate == GB_ENG_FQN) {
+				return "en-GB";
+			} else if (coordinate == ESP_REG || coordinate == ESP_FQN) {
+				return "es";
+			}
+		}
+		return "en";
+	}
+
+
+	public static LanguageCoordinate getCoordinate(UUID uuid) {
+		for (LanguageCoordinate coordinate : LanguageCoordinate.values()) {
+			if (coordinate.uuids.contains(uuid)) {
+				return coordinate;
+			}
+		}
+		return US_ENG_REG;
+	}
 }

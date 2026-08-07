@@ -1,21 +1,20 @@
 package dev.ikm.aperture.solor;
 
+import dev.ikm.aperture.solor.processor.ConceptProcessor;
+import dev.ikm.aperture.solor.processor.IdentifierProcessor;
 import dev.ikm.aperture.solor.processor.KnowledgeProcessor;
 import dev.ikm.aperture.solor.processor.SolorVocabulary;
 import dev.ikm.tinkar.common.id.PublicId;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.Set;
 
 @Service
 public class SolorService {
@@ -60,19 +59,26 @@ public class SolorService {
 		solorGenerationContext.getSolorModel().add(baseOntModelTemplate);
 	}
 
-	private void generateSolorGraph(SolorGenerationContext solorGenerationContext, List<PublicId> conceptIds) {
+	private void generateSolorGraph(SolorGenerationContext solorGenerationContext, Set<PublicId> conceptIds) {
 		LOG.info("Generating solor graph from {} concepts", conceptIds.size());
 
 		// Add the base ontology model template to the Solor model
 		solorGenerationContext.getSolorModel().add(baseOntModelTemplate);
 
 		for (PublicId conceptId : conceptIds) {
-			// Save concept identifier to the Solor model and require it in the generation context
-			solorGenerationContext.requireTargetConcept(conceptId);
-
 			// Loop through all the supported Knowledge Processors
 			for (KnowledgeProcessor knowledgeProcessor : knowledgeProcessors) {
 				knowledgeProcessor.process(solorGenerationContext, conceptId);
+			}
+		}
+
+		KnowledgeProcessor conceptProcessor = new ConceptProcessor();
+		KnowledgeProcessor identifierProcessor = new IdentifierProcessor();
+		Set<PublicId> pendingBatch;
+		while (!(pendingBatch = solorGenerationContext.getAndClearPendingConceptIds()).isEmpty()) {
+			for (PublicId conceptId : pendingBatch) {
+				conceptProcessor.process(solorGenerationContext, conceptId);
+				identifierProcessor.process(solorGenerationContext, conceptId);
 			}
 		}
 	}

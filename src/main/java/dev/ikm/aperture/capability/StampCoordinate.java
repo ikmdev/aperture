@@ -50,4 +50,13 @@ public enum StampCoordinate {
 		}
 		return DEV_LATEST.getRecord();
 	}
+
+	public static StampCoordinate getCoordinate(UUID uuid) {
+		for (StampCoordinate coordinate : StampCoordinate.values()) {
+			if (coordinate.uuids.contains(uuid)) {
+				return coordinate;
+			}
+		}
+		return DEV_LATEST;
+	}
 }

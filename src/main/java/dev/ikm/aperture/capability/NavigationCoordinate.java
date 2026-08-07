@@ -41,4 +41,14 @@ public enum NavigationCoordinate {
 		}
 		return INFERRED.getRecord();
 	}
+
+
+	public static NavigationCoordinate getCoordinate(UUID uuid) {
+		for (NavigationCoordinate coordinate : NavigationCoordinate.values()) {
+			if (coordinate.uuids.contains(uuid)) {
+				return coordinate;
+			}
+		}
+		return INFERRED;
+	}
 }
