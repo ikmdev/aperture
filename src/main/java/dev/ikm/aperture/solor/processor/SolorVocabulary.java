@@ -28,7 +28,10 @@ public class SolorVocabulary {
 	public static final Property HAS_IDENTIFIER_VALUE = ResourceFactory.createProperty(NAMESPACE, "has_identifier_value");
 	public static final Property HAS_IDENTIFIER_SYSTEM = ResourceFactory.createProperty(NAMESPACE, "has_identifier_system");
 
-	public static final Property IS_A = ResourceFactory.createProperty(NAMESPACE, "is_a");
+	public static final Property HAS_ANCESTOR = ResourceFactory.createProperty(NAMESPACE, "has_ancestor");
+	public static final Property HAS_TOTAL_ANCESTORS = ResourceFactory.createProperty(NAMESPACE, "has_total_ancestors");
+	public static final Property HAS_PARENT = ResourceFactory.createProperty(NAMESPACE, "has_parent");
+	public static final Property HAS_TOTAL_PARENTS =  ResourceFactory.createProperty(NAMESPACE, "has_total_parents");
 	public static final Property HAS_TOTAL_CHILDREN = ResourceFactory.createProperty(NAMESPACE, "has_total_children");
 	public static final Property HAS_CHILD = ResourceFactory.createProperty(NAMESPACE, "has_child");
 

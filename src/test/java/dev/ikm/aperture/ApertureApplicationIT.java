@@ -219,6 +219,96 @@ class ApertureApplicationIT {
 			assertThat(qExec.execAsk()).as("Should contain specific synonyms paired with correct case sensitivity").isTrue();
 		}
 
+		// 5. SPARQL ASK for Root Concept Status and Typed Taxonomic Counts
+		String askCountsAndStatusShape = """
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
+				ASK {
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 
+					        solor:has_status solor:09f12001-0e4f-51e2-9852-44862a4a0db4 ;
+					        solor:has_total_parents "1"^^xsd:long ;
+					        solor:has_total_children "16"^^xsd:long ;
+					        solor:has_total_ancestors "18"^^xsd:long .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askCountsAndStatusShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain root active status and mapped xsd:long counts for taxonomy limitations").isTrue();
+		}
+
+		// 6. SPARQL ASK for Taxonomy Relationships and Dependent Concept Minimum Context
+		String askTaxonomyShape = """
+				PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+				PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				ASK {
+					# Check that the main concept links to a specific Parent, Ancestor, and Child
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 
+					        solor:has_parent solor:efd6ce04-50f4-57ff-8995-d33bdebabcfc ;
+					        solor:has_ancestor solor:c3735e2d-9206-58bb-aa12-f92c4e5730a7 ;
+					        solor:has_child solor:d4a8f3f7-efde-55c8-ba17-59c55c357605 .
+					
+					# Verify the Parent Concept generated properly
+					solor:efd6ce04-50f4-57ff-8995-d33bdebabcfc 
+					        rdf:type solor:Concept ;
+					        rdfs:label "Venous thrombosis" .
+					        
+					# Verify the Ancestor Concept generated properly
+					solor:c3735e2d-9206-58bb-aa12-f92c4e5730a7
+					        rdf:type solor:Concept ;
+					        rdfs:label "Disease" .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askTaxonomyShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain child, parent, and ancestor relationships with populated dependent nodes").isTrue();
+		}
+
+		// 7. SPARQL ASK for Status explicit tracking inside Blank Nodes
+		String askBlankNodeStatusShape = """
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				ASK {
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 solor:has_description ?descNode .
+					?descNode solor:has_fully_qualified_name "Deep venous thrombosis (disorder)"@en-US ;
+					          solor:has_status solor:09f12001-0e4f-51e2-9852-44862a4a0db4 .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askBlankNodeStatusShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain local status UUID explicitly inside the description blank node").isTrue();
+		}
+
+		// 8. SPARQL ASK for Flattened Defining Relationships (Axioms) with Punning
+		String askAxiomsShape = """
+				PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+				PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				ASK {
+					# 1. Check the direct predicate linkages (Flattened Axioms)
+					solor:41bfe458-c5fa-54af-8889-2465e8639d95 
+					        solor:0a5a0986-d062-58b2-9877-3d144e85ed7f solor:05893942-2f07-53bc-ab64-271ecf2f9c15 ; # Associated morphology -> Thrombus
+					        solor:155583ae-a95a-55d2-9a6c-3080e27e49b1 solor:cd610a59-d911-5aba-bfad-1e37c1298209 . # Finding site -> Deep vein
+					        
+					# 2. Check that the Predicate concepts were properly resolved (Relationship Types)
+					solor:0a5a0986-d062-58b2-9877-3d144e85ed7f 
+					        rdf:type solor:Concept ;
+					        rdfs:label "Associated morphology" .
+					        
+					solor:155583ae-a95a-55d2-9a6c-3080e27e49b1 
+					        rdf:type solor:Concept ;
+					        rdfs:label "Finding site" .
+					        
+					# 3. Check that the Target concepts were properly resolved
+					solor:05893942-2f07-53bc-ab64-271ecf2f9c15
+					        rdf:type solor:Concept ;
+					        rdfs:label "Thrombus" .
+					        
+					solor:cd610a59-d911-5aba-bfad-1e37c1298209 
+					        rdf:type solor:Concept ;
+					        rdfs:label "Deep vein" .
+				}
+				""";
+		try (QueryExecution qExec = QueryExecutionFactory.create(askAxiomsShape, responseModel)) {
+			assertThat(qExec.execAsk()).as("Should contain dynamic relationship predicates linking to target logic concepts with proper labels").isTrue();
+		}
+
 	}
 
 }
