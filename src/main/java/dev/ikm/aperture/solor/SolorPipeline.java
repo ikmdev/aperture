@@ -105,62 +105,106 @@ public class SolorPipeline {
 		LOG.info("Transform to graphRAG model");
 		String transformQuery = """
 				PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-				 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
-				 PREFIX solor: <https://www.ikm.dev/solor/>
+				PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+				PREFIX solor: <https://www.ikm.dev/solor/>
 				
-				 CONSTRUCT {
-				     ?concept rdfs:label ?conceptLabel .
-				     ?concept solor:has_parent ?parentLabel .
-				     ?concept solor:has_child ?childLabel .
-				     ?concept solor:has_synonym ?synonym .
-				     ?concept solor:has_fully_qualified_name ?fqn .
-				     ?concept solor:has_identifier ?formattedIdentifier .
-				     ?concept ?readablePredicate ?objectLabel .
-				 }
-				 WHERE {
-				     ?concept rdf:type solor:Concept .
-				     ?concept rdfs:label ?conceptLabel .
+				CONSTRUCT {
+				    ?concept rdfs:label ?conceptLabel .
+				    ?concept solor:has_parent ?parentLabel .
+				    ?concept solor:has_child ?childLabel .
+				    ?concept solor:has_synonym ?synonym .
+				    ?concept solor:has_fully_qualified_name ?fqn .
+				    ?concept solor:has_identifier ?formattedIdentifier .
+				    ?concept ?readablePredicate ?objectLabel .
+				}
+				WHERE {
+				    ?concept rdf:type solor:Concept .
+				    ?concept rdfs:label ?conceptLabel .
 				
-				     {
-				         # Flatten Descriptions
-				         ?concept solor:has_description ?descNode .
-				         { ?descNode solor:has_synonym ?synonym . }
-				         UNION
-				         { ?descNode solor:has_fully_qualified_name ?fqn . }
-				     }
-				     UNION
-				     {
-				         # Flatten Identifiers
-				         ?concept solor:has_identifier ?idNode .
-				         ?idNode solor:has_identifier_value ?idVal .
-				         OPTIONAL {\s
-				             ?idNode solor:has_identifier_system ?idSys .
-				             ?idSys rdfs:label ?sysLabel .
-				         }
-				         BIND(IF(BOUND(?sysLabel), CONCAT(?sysLabel, ": ", ?idVal), ?idVal) AS ?formattedIdentifier)
-				     }
-				     UNION
-				     {
-				         # Flatten Hierarchy
-				         ?concept solor:has_parent ?parent .
-				         ?parent rdfs:label ?parentLabel .
-				     }
-				     UNION
-				     {
-				         ?concept solor:has_child ?child .
-				         ?child rdfs:label ?childLabel .
-				     }
-				     UNION
-				     {
-				         # Map Relationships
-				         ?concept ?predicateUuid ?objectUuid .
-				         ?predicateUuid rdf:type rdf:Property .
-				         ?predicateUuid rdfs:label ?predLabel .
-				         ?objectUuid rdfs:label ?objectLabel .
+				    {
+				        # Flatten Descriptions
+				        ?concept solor:has_description ?descNode .
+				        { ?descNode solor:has_synonym ?synonym . }
+				        UNION
+				        { ?descNode solor:has_fully_qualified_name ?fqn . }
+				    }
+				    UNION
+				    {
+				        # Flatten Identifiers
+				        ?concept solor:has_identifier ?idNode .
+				        ?idNode solor:has_identifier_value ?idVal .
+				        OPTIONAL {\s
+				            ?idNode solor:has_identifier_system ?idSys .
+				            ?idSys rdfs:label ?sysLabel .
+				        }
+				        BIND(IF(BOUND(?sysLabel), CONCAT(?sysLabel, ": ", ?idVal), ?idVal) AS ?formattedIdentifier)
+				    }
+				    UNION
+				    {
+				        # Flatten Hierarchy (Parents)
+				        ?concept solor:has_parent ?parent .
+				        ?parent rdfs:label ?rawParentLabel .
 				
-				         BIND(IRI(CONCAT("https://www.ikm.dev/solor/", REPLACE(?predLabel, " ", "_"))) AS ?readablePredicate)
-				     }
-				 }
+				        # 1. Look up the parent's identifiers
+				        OPTIONAL {
+				            ?parent solor:has_identifier ?parentIdNode .
+				            ?parentIdNode solor:has_identifier_value ?parentIdVal .
+				            ?parentIdNode solor:has_identifier_system ?parentIdSys .
+				            ?parentIdSys rdfs:label ?parentSysLabel .
+				
+				            # 2. Filter out the internal UUIDs
+				            FILTER(STR(?parentSysLabel) != "UUID")
+				        }
+				
+				        # 3. Concatenate if an ID exists, otherwise fall back to just the label
+				        BIND(IF(BOUND(?parentIdVal), CONCAT(?parentSysLabel, ": ", ?parentIdVal, " | ", ?rawParentLabel), ?rawParentLabel) AS ?parentLabel)
+				    }
+				    UNION
+				    {
+				        # Flatten Hierarchy (Children)
+				        ?concept solor:has_child ?child .
+				        ?child rdfs:label ?rawChildLabel .
+				
+				        # 1. Look up the child's identifiers
+				        OPTIONAL {
+				            ?child solor:has_identifier ?childIdNode .
+				            ?childIdNode solor:has_identifier_value ?childIdVal .
+				            ?childIdNode solor:has_identifier_system ?childIdSys .
+				            ?childIdSys rdfs:label ?childSysLabel .
+				
+				            # 2. Filter out the internal UUIDs
+				            FILTER(STR(?childSysLabel) != "UUID")
+				        }
+				
+				        # 3. Concatenate if an ID exists, otherwise fall back to just the label
+				        BIND(IF(BOUND(?childIdVal), CONCAT(?childSysLabel, ": ", ?childIdVal, " | ", ?rawChildLabel), ?rawChildLabel) AS ?childLabel)
+				    }
+				    UNION
+				    {
+				        # Map Relationships
+				        ?concept ?predicateUuid ?objectUuid .
+				        ?predicateUuid rdf:type rdf:Property .
+				        ?predicateUuid rdfs:label ?predLabel .
+				        ?objectUuid rdfs:label ?rawObjectLabel .
+				
+				        # 1. Look up the object's identifiers
+				        OPTIONAL {
+				            ?objectUuid solor:has_identifier ?objectIdNode .
+				            ?objectIdNode solor:has_identifier_value ?objectIdVal .
+				            ?objectIdNode solor:has_identifier_system ?objectIdSys .
+				            ?objectIdSys rdfs:label ?objectSysLabel .
+				
+				            # 2. Filter out the internal UUIDs
+				            FILTER(STR(?objectSysLabel) != "UUID")
+				        }
+				
+				        # 3. Concatenate if an ID exists, otherwise fall back to just the label
+				        BIND(IF(BOUND(?objectIdVal), CONCAT(?objectSysLabel, ": ", ?objectIdVal, " | ", ?rawObjectLabel), ?rawObjectLabel) AS ?objectLabel)
+				
+				        # 4. Bind the human-readable predicate
+				        BIND(IRI(CONCAT("https://www.ikm.dev/solor/", REPLACE(?predLabel, " ", "_"))) AS ?readablePredicate)
+				    }
+				}
 				""";
 
 		// Execute the structural transformation
