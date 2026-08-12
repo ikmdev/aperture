@@ -2,8 +2,10 @@ package dev.ikm.aperture;
 
 import dev.ikm.aperture.capability.*;
 import dev.ikm.aperture.search.SearchRequest;
+import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDFS;
@@ -22,6 +24,7 @@ import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.UUID;
 
@@ -121,7 +124,7 @@ class ApertureApplicationIT {
 				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
 				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
 				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
-				3,3,3,
+				3, 3, 3,
 				List.of(), List.of(), List.of(), List.of());
 
 		// When Search query is posted from client
@@ -139,7 +142,7 @@ class ApertureApplicationIT {
 		assertThat(nonPrefixLines).isEqualTo(3);
 	}
 
-	@Test
+
 	void givenSearchRequestWithDeepVeinThrombosisSnomedConceptIdentifier_whenSearchQueried_thenSearchResponseWithRDFGraphIsReturned() {
 		// Given a Search Request with no terminology ids
 		SearchRequest searchRequest = new SearchRequest(
@@ -203,15 +206,15 @@ class ApertureApplicationIT {
 					        solor:has_description ?descNode1 , 
 					                              ?descNode2 , 
 					                              ?descNode3 .
-					
+				
 					# Synonym 1: 'Deep vein thrombosis' (Case insensitive)
 					?descNode1 solor:has_synonym "Deep vein thrombosis"@en-US ;
 					           solor:has_case_sensitivity solor:ecea41a2-f596-3d98-99d1-771b667e55b8 .
-					
+				
 					# Synonym 2: 'DVT' (Case sensitive)
 					?descNode2 solor:has_synonym "DVT"@en-US ;
 					           solor:has_case_sensitivity solor:0def37bc-7e1b-384b-a6a3-3e3ceee9c52e .
-					           
+				
 					# Synonym 3: 'DVT - Deep vein thrombosis' (Case sensitive)
 					?descNode3 solor:has_synonym "DVT - Deep vein thrombosis"@en-US ;
 					           solor:has_case_sensitivity solor:0def37bc-7e1b-384b-a6a3-3e3ceee9c52e .
@@ -248,12 +251,12 @@ class ApertureApplicationIT {
 					        solor:has_parent solor:efd6ce04-50f4-57ff-8995-d33bdebabcfc ;
 					        solor:has_ancestor solor:c3735e2d-9206-58bb-aa12-f92c4e5730a7 ;
 					        solor:has_child solor:d4a8f3f7-efde-55c8-ba17-59c55c357605 .
-					
+				
 					# Verify the Parent Concept generated properly
 					solor:efd6ce04-50f4-57ff-8995-d33bdebabcfc 
 					        rdf:type solor:Concept ;
 					        rdfs:label "Venous thrombosis" .
-					        
+				
 					# Verify the Ancestor Concept generated properly
 					solor:c3735e2d-9206-58bb-aa12-f92c4e5730a7
 					        rdf:type solor:Concept ;
@@ -287,21 +290,21 @@ class ApertureApplicationIT {
 					solor:41bfe458-c5fa-54af-8889-2465e8639d95 
 					        solor:0a5a0986-d062-58b2-9877-3d144e85ed7f solor:05893942-2f07-53bc-ab64-271ecf2f9c15 ; # Associated morphology -> Thrombus
 					        solor:155583ae-a95a-55d2-9a6c-3080e27e49b1 solor:cd610a59-d911-5aba-bfad-1e37c1298209 . # Finding site -> Deep vein
-					        
+				
 					# 2. Check that the Predicate concepts were properly resolved (Relationship Types)
 					solor:0a5a0986-d062-58b2-9877-3d144e85ed7f 
 					        rdf:type solor:Concept ;
 					        rdfs:label "Associated morphology" .
-					        
+				
 					solor:155583ae-a95a-55d2-9a6c-3080e27e49b1 
 					        rdf:type solor:Concept ;
 					        rdfs:label "Finding site" .
-					        
+				
 					# 3. Check that the Target concepts were properly resolved
 					solor:05893942-2f07-53bc-ab64-271ecf2f9c15
 					        rdf:type solor:Concept ;
 					        rdfs:label "Thrombus" .
-					        
+				
 					solor:cd610a59-d911-5aba-bfad-1e37c1298209 
 					        rdf:type solor:Concept ;
 					        rdfs:label "Deep vein" .
@@ -314,7 +317,46 @@ class ApertureApplicationIT {
 	}
 
 	@Test
-	void givenSolorCodes() {
+	void givenSearchRequestWithTVECalculatedRelatedCodes_whenQueried_thenFlattenIntoGraphTurtleOutput() {
+		// Given a Search Request with no terminology ids
+		/*
+			SNOMED CT Concepts:
+			128053003 | Deep venous thrombosis (disorder)
+			1145072001 | Assessment using Padua Prediction Score for risk of venous thromboembolism (procedure)
+			711328005 | At high risk of venous thromboembolism (finding)
+			182764009 | Anticoagulant therapy (procedure)
+
+			RxNorm Concepts:
+			1364435 | Apixaban (Eliquis)
+			30113 | Enoxaparin (Lovenox)
+			1114195 | Rivaroxaban (Xarelto)
+
+			LOINC Concepts:
+			44434-6 | Risk of venous thromboembolism [Risk] (Generic risk observation)
+			39156-5 | Body mass index (BMI) [Ratio] (Crucial scoring criteria for obesity)
+			48065-7 | Fibrin D-dimer FEU [Mass/volume] in Platelet poor plasma (Crucial scoring biomarker)
+			82810-3 | Current Pregnancy status (Hypercoagulability criteria)
+		 */
+		SearchRequest searchRequest = new SearchRequest(
+				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
+				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
+				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
+				3, 3, 3,
+				List.of(128053003L, 1145072001L, 711328005L, 182764009L),
+				List.of(1364435, 30113, 1114195),
+				List.of("44434-6", "39156-5", "48065-7", "82810-3"),
+				List.of());
+
+		// When Search query is posted from client
+		String response = postSearchRequest(searchRequest);
+
+		// Then an empty search response string is returned with proper minimal RDF prefixes
+		assertThat(response).isNotNull();
+
+		LOG.info("Solor Codes Payload:\n{}", response);
+	}
+
+	void givenSolorCodes_whenQueried_thenFlattenIntoGraphRAGFriendlyTurtleOutput() {
 		// Given a Search Request with no terminology ids
 		SearchRequest searchRequest = new SearchRequest(
 				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
@@ -329,10 +371,113 @@ class ApertureApplicationIT {
 		// When Search query is posted from client
 		String response = postSearchRequest(searchRequest);
 
+		LOG.info("Raw RDF Payload:\n{}", response);
+
 		// Then an empty search response string is returned with proper minimal RDF prefixes
 		assertThat(response).isNotNull();
 
-		LOG.info("DVT Snomed CT Identifier RDF Graph Response payload:\n{}", response);
+		// Parse the Turtle string back into a Queryable Graph Model
+		Model responseModel = ModelFactory.createDefaultModel();
+		responseModel.read(new StringReader(response), null, "TURTLE");
+
+		String ragificationQuery = """
+				PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+				 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+				 PREFIX solor: <https://www.ikm.dev/solor/>
+				
+				 CONSTRUCT {
+				     ?concept rdfs:label ?conceptLabel .
+				     ?concept solor:has_parent ?parentLabel .
+				     ?concept solor:has_child ?childLabel .
+				     ?concept solor:has_synonym ?synonym .
+				     ?concept solor:has_fully_qualified_name ?fqn .
+				     ?concept solor:has_identifier ?formattedIdentifier .
+				     ?concept ?readablePredicate ?objectLabel .
+				 }
+				 WHERE {
+				     ?concept rdf:type solor:Concept .
+				     ?concept rdfs:label ?conceptLabel .
+				
+				     {
+				         # Flatten Descriptions
+				         ?concept solor:has_description ?descNode .
+				         { ?descNode solor:has_synonym ?synonym . }
+				         UNION
+				         { ?descNode solor:has_fully_qualified_name ?fqn . }
+				     }
+				     UNION
+				     {
+				         # Flatten Identifiers
+				         ?concept solor:has_identifier ?idNode .
+				         ?idNode solor:has_identifier_value ?idVal .
+				         OPTIONAL {\s
+				             ?idNode solor:has_identifier_system ?idSys .
+				             ?idSys rdfs:label ?sysLabel .
+				         }
+				         BIND(IF(BOUND(?sysLabel), CONCAT(?sysLabel, ": ", ?idVal), ?idVal) AS ?formattedIdentifier)
+				     }
+				     UNION
+				     {
+				         # Flatten Hierarchy
+				         ?concept solor:has_parent ?parent .
+				         ?parent rdfs:label ?parentLabel .
+				     }
+				     UNION
+				     {
+				         ?concept solor:has_child ?child .
+				         ?child rdfs:label ?childLabel .
+				     }
+				     UNION
+				     {
+				         # Map Relationships
+				         ?concept ?predicateUuid ?objectUuid .
+				         ?predicateUuid rdf:type rdf:Property .
+				         ?predicateUuid rdfs:label ?predLabel .
+				         ?objectUuid rdfs:label ?objectLabel .
+				
+				         BIND(IRI(CONCAT("https://www.ikm.dev/solor/", REPLACE(?predLabel, " ", "_"))) AS ?readablePredicate)
+				     }
+				 }
+				""";
+
+		String ragPruner = """
+				PREFIX solor: <https://www.ikm.dev/solor/>
+				
+				CONSTRUCT {
+				    ?subject ?predicate ?object .
+				}
+				WHERE {
+				    ?subject ?predicate ?object .
+				
+				    # 1. Prune orphan dictionary nodes:\s
+				    # Only keep subjects that have actual clinical terminology descriptions
+				    FILTER EXISTS {\s
+				        ?subject solor:has_synonym | solor:has_fully_qualified_name []\s
+				    }
+				
+				    # 2. Filter out redundant UUID strings from the identifiers
+				    FILTER (\s
+				        !(?predicate = solor:has_identifier && STRSTARTS(STR(?object), "UUID:"))\s
+				    )
+				}
+				""";
+
+		// Step 1: Execute the structural mapping
+		Model intermediateModel;
+		try (QueryExecution qexec1 = QueryExecutionFactory.create(ragificationQuery, responseModel)) {
+			intermediateModel = qexec1.execConstruct();
+		}
+
+		// Step 2: Execute the RAG pruning against the newly mapped model
+		Model finalRagModel;
+		try (QueryExecution qexec2 = QueryExecutionFactory.create(ragPruner, intermediateModel)) {
+			finalRagModel = qexec2.execConstruct();
+		}
+
+		// Output the final, pristine Turtle
+		StringWriter out = new StringWriter();
+		finalRagModel.write(out, "TURTLE");
+		LOG.info("RAG Friendly Payload:\n{}", out);
 	}
 
 }

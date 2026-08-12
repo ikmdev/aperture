@@ -9,7 +9,7 @@ import java.util.Set;
 public class SolorGenerationContext {
 
 	private final SolorRequest solorRequest;
-	private final Model solorModel;
+	private Model solorModel;
 	private final Set<PublicId> processedConceptIds;
 	private final Set<PublicId> pendingConceptIds;
 	private final Set<PublicId> processedPredicateIds;
@@ -26,6 +26,10 @@ public class SolorGenerationContext {
 
 	public Model getSolorModel() {
 		return solorModel;
+	}
+
+	public void setSolorModel(Model solorModel) {
+		this.solorModel = solorModel;
 	}
 
 	public SolorRequest getSolorRequest() {

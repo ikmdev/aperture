@@ -44,6 +44,7 @@ public class AxiomProcessor implements KnowledgeProcessor {
 						switch (typeAtom) {
 							case LogicalAxiom.Atom.TypedAtom.Role role -> {
 								if (role.restriction() instanceof LogicalAxiom.Atom.ConceptAxiom conceptAxiom) {
+									// Get Role Type and Object
 									UUID predicateId = role.type().publicId().asUuidList().get(0);
 									UUID objectId = conceptAxiom.concept().publicId().asUuidList().get(0);
 
@@ -60,11 +61,10 @@ public class AxiomProcessor implements KnowledgeProcessor {
 								}
 							}
 							case LogicalAxiom.Atom.TypedAtom.Feature feature -> {
-
+								// Get Feature Type, Operator, and Value
 								UUID featureTypeId = feature.type().publicId().asUuidList().get(0);
 								UUID concreteOperatorId = feature.concreteDomainOperator().publicId().asUuidList().get(0);
 								String literalValue = String.valueOf(feature.literal());
-
 
 								// Create Feature node
 								Resource featureNode = model.createResource()
