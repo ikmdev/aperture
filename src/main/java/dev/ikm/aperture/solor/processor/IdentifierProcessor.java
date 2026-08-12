@@ -49,7 +49,7 @@ public class IdentifierProcessor implements KnowledgeProcessor {
 							.addProperty(SolorVocabulary.HAS_IDENTIFIER, identifierNode);
 
 					// Add Identifier Concept to SolorGenerationContext
-					solorGenerationContext.requireTargetConcept(identifierSystemFacade.publicId());
+					solorGenerationContext.requireConcept(identifierSystemFacade.publicId());
 				});
 	}
 }

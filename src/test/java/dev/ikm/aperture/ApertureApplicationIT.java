@@ -121,6 +121,7 @@ class ApertureApplicationIT {
 				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
 				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
 				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
+				3,3,3,
 				List.of(), List.of(), List.of(), List.of());
 
 		// When Search query is posted from client
@@ -145,6 +146,7 @@ class ApertureApplicationIT {
 				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
 				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
 				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
+				3, 3, 3,
 				List.of(128053003L),
 				List.of(), List.of(), List.of());
 
@@ -309,6 +311,28 @@ class ApertureApplicationIT {
 			assertThat(qExec.execAsk()).as("Should contain dynamic relationship predicates linking to target logic concepts with proper labels").isTrue();
 		}
 
+	}
+
+	@Test
+	void givenSolorCodes() {
+		// Given a Search Request with no terminology ids
+		SearchRequest searchRequest = new SearchRequest(
+				UUID.fromString("05df10d8-88c2-440c-a3c0-a286f14b4cd7"), // Eng Lang with Regular Name
+				UUID.fromString("10f727e4-adac-4a94-80f5-00614692aa46"), // Inferred Navigation
+				UUID.fromString("1767ad74-0b89-4601-b293-89dc0c51917a"), // Latest on Development Path
+				3, 3, 3,
+				List.of(128053003L),
+				List.of(1364435),
+				List.of("87848-8"),
+				List.of());
+
+		// When Search query is posted from client
+		String response = postSearchRequest(searchRequest);
+
+		// Then an empty search response string is returned with proper minimal RDF prefixes
+		assertThat(response).isNotNull();
+
+		LOG.info("DVT Snomed CT Identifier RDF Graph Response payload:\n{}", response);
 	}
 
 }

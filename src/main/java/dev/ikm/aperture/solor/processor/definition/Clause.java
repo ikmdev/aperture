@@ -11,6 +11,7 @@ public class Clause {
 	private final List<RoleGroup> roleGroups;
 	private final List<Role> roles;
 	private final List<Reference> references;
+	private final List<Feature> features;
 
 	public Clause(Type type, List<Object> content) {
 		this.id = UUID.randomUUID();
@@ -18,6 +19,7 @@ public class Clause {
 		this.roleGroups = new ArrayList<>();
 		this.roles = new ArrayList<>();
 		this.references = new ArrayList<>();
+		this.features = new ArrayList<>();
 	}
 
 	public Clause(Type type) {
@@ -26,6 +28,7 @@ public class Clause {
 		this.roleGroups = new ArrayList<>();
 		this.roles = new ArrayList<>();
 		this.references = new ArrayList<>();
+		this.features = new ArrayList<>();
 	}
 
 	public UUID id() {
@@ -58,6 +61,10 @@ public class Clause {
 
 	public void addReference(Reference reference) {
 		references.add(reference);
+	}
+
+	public void addFeature(Feature feature) {
+		features.add(feature);
 	}
 
 }

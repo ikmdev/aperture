@@ -7,6 +7,7 @@ import dev.ikm.aperture.solor.processor.SolorVocabulary;
 import dev.ikm.tinkar.common.id.PublicId;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,13 +73,26 @@ public class SolorService {
 			}
 		}
 
+		// After the main processing phase run processing to build out dependent concept and predicates
 		KnowledgeProcessor conceptProcessor = new ConceptProcessor();
 		KnowledgeProcessor identifierProcessor = new IdentifierProcessor();
-		Set<PublicId> pendingBatch;
-		while (!(pendingBatch = solorGenerationContext.getAndClearPendingConceptIds()).isEmpty()) {
-			for (PublicId conceptId : pendingBatch) {
+		Set<PublicId> pendingConceptBatch;
+		while (!(pendingConceptBatch = solorGenerationContext.getAndClearPendingConceptIds()).isEmpty()) {
+			for (PublicId conceptId : pendingConceptBatch) {
 				conceptProcessor.process(solorGenerationContext, conceptId);
 				identifierProcessor.process(solorGenerationContext, conceptId);
+			}
+		}
+
+		// After the main processing phase run processing to build out dependent predicates
+		Set<PublicId> pendingPredicateBatch;
+		while (!(pendingPredicateBatch = solorGenerationContext.getAndClearPendingPredicateIds()).isEmpty()) {
+			for (PublicId predicateId : pendingPredicateBatch) {
+				// Process the concept itself
+				// Process the rdfs:type Predicate
+				solorGenerationContext.getSolorModel()
+						.createResource(SolorVocabulary.NAMESPACE + predicateId.asUuidList().get(0))
+						.addProperty(RDF.type, RDF.Property);
 			}
 		}
 	}

@@ -17,6 +17,7 @@ public enum Type {
 	ROLE(TinkarTermV2.ROLE),
 	INTERVAL_ROLE(TinkarTermV2.INTERVAL_ROLE),
 	CONCRETE_ROLE(TinkarTermV2.CONCRETE_VALUE_OPERATOR),
+	FEATURE(TinkarTermV2.FEATURE),
 	REFERENCE(TinkarTermV2.CONCEPT_REFERENCE);
 
 	private EntityProxy.Concept tinkarTerm;

@@ -75,7 +75,7 @@ public class SolorMapper {
 
 		// RxNorm Identifier Conversion
 		searchRequest.rxnormIds().forEach(id -> {
-			UUID uuid = UuidT5Generator.get(RXNORM_NAMESPACE, id.toString());
+			UUID uuid = UuidT5Generator.get(RXNORM_NAMESPACE, id.toString() + "rxnorm");
 			PublicId publicId = PublicIds.of(uuid);
 			addPublicIdIfAllowed(stampCalculatorWithCache, conceptIds, publicId);
 		});
@@ -86,7 +86,10 @@ public class SolorMapper {
 				languageCalculatorWithCache,
 				navigationCalculatorWithCache,
 				stampCalculatorWithCache,
-				conceptIds);
+				conceptIds,
+				searchRequest.childrenDepth(),
+				searchRequest.parentsDepth(),
+				searchRequest.ancestorsDepth());
 	}
 
 	private static void addPublicIdIfAllowed(StampCalculatorWithCache stampCalculatorWithCache, Set<PublicId> conceptIds, PublicId conceptId) {
@@ -97,3 +100,7 @@ public class SolorMapper {
 		}
 	}
 }
+
+/*
+Apixaban 2.5mg tablet: [e7d31a0d-86cc-5284-a330-6a86b406bf4d, 447200e0-9c92-5521-8ca6-54eef90c6427]
+ */

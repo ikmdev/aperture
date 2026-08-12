@@ -7,7 +7,6 @@ import dev.ikm.tinkar.common.id.PublicId;
 import dev.ikm.tinkar.common.id.PublicIds;
 import dev.ikm.tinkar.entity.Entity;
 import dev.ikm.tinkar.entity.EntityHandle;
-import dev.ikm.tinkar.terms.TinkarTermV2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.springframework.stereotype.Component;
@@ -16,8 +15,6 @@ import java.util.*;
 
 @Component
 public class AncestorsProcessor implements KnowledgeProcessor {
-
-	private static final int ANCESTOR_LIMIT = 20;
 
 	@Override
 	public void process(SolorGenerationContext solorGenerationContext, PublicId conceptId) {
@@ -32,7 +29,7 @@ public class AncestorsProcessor implements KnowledgeProcessor {
 				.filter(Optional::isPresent)
 				.map(Optional::get)
 				.sorted(Comparator.comparing(concept -> solorRequest.languageCalculatorWithCache().getDescriptionText(concept.nid()).orElse("TEXT NOT FOUND")))
-				.limit(ANCESTOR_LIMIT)
+				.limit(solorRequest.ancestorsDepth())
 				.map(concept -> concept.publicId().asUuidList().get(0))
 				.toList();
 
@@ -48,10 +45,8 @@ public class AncestorsProcessor implements KnowledgeProcessor {
 			conceptSubject.addProperty(SolorVocabulary.HAS_ANCESTOR, parent);
 
 			// Add Parent Concept to SolorGenerationContext
-			solorGenerationContext.requireTargetConcept(PublicIds.of(parentUUID));
+			solorGenerationContext.requireConcept(PublicIds.of(parentUUID));
 		});
-
-
 	}
 
 }

@@ -12,12 +12,16 @@ public class SolorGenerationContext {
 	private final Model solorModel;
 	private final Set<PublicId> processedConceptIds;
 	private final Set<PublicId> pendingConceptIds;
+	private final Set<PublicId> processedPredicateIds;
+	private final Set<PublicId> pendingPredicateIds;
 
 	public SolorGenerationContext(SolorRequest solorRequest, Model solorModel) {
 		this.solorRequest = solorRequest;
 		this.solorModel = solorModel;
 		this.processedConceptIds = new HashSet<>();
 		this.pendingConceptIds = new HashSet<>();
+		this.processedPredicateIds = new HashSet<>();
+		this.pendingPredicateIds = new HashSet<>();
 	}
 
 	public Model getSolorModel() {
@@ -28,13 +32,16 @@ public class SolorGenerationContext {
 		return solorRequest;
 	}
 
-	public Set<PublicId> getProcessedConceptIds() {
-		return processedConceptIds;
-	}
-
-	public void requireTargetConcept(PublicId conceptId) {
+	public void requireConcept(PublicId conceptId) {
 		if (!processedConceptIds.contains(conceptId)) {
 			pendingConceptIds.add(conceptId);
+		}
+	}
+
+	public void requirePredicate(PublicId conceptId) {
+		requireConcept(conceptId);
+		if (!processedPredicateIds.contains(conceptId)) {
+			pendingPredicateIds.add(conceptId);
 		}
 	}
 
@@ -44,4 +51,12 @@ public class SolorGenerationContext {
 		pendingConceptIds.clear();
 		return batch;
 	}
+
+	public Set<PublicId> getAndClearPendingPredicateIds() {
+		Set<PublicId> batch = new HashSet<>(pendingPredicateIds);
+		processedPredicateIds.addAll(batch);
+		pendingPredicateIds.clear();
+		return batch;
+	}
+
 }

@@ -14,6 +14,9 @@ public record SearchRequest(
 		UUID navigationCoordinateId,
 		@NotNull(message = "stampCoordinateId must not be null")
 		UUID stampCoordinateId,
+		int childrenDepth,
+		int parentsDepth,
+		int ancestorsDepth,
 		List<Long> sctIds,
 		List<Integer> rxnormIds,
 		List<String> loincIds,
@@ -24,9 +27,8 @@ public record SearchRequest(
 		rxnormIds = Objects.requireNonNullElse(rxnormIds, Collections.emptyList());
 		loincIds = Objects.requireNonNullElse(loincIds, Collections.emptyList());
 		ikeIds = Objects.requireNonNullElse(ikeIds, Collections.emptyList());
-	}
-
-	public boolean isEmpty() {
-		return sctIds.isEmpty() && rxnormIds.isEmpty() && loincIds.isEmpty() && ikeIds.isEmpty();
+		Objects.requireNonNullElseGet(childrenDepth, () -> 1);
+		Objects.requireNonNullElseGet(parentsDepth, () -> 1);
+		 Objects.requireNonNullElseGet(ancestorsDepth, () -> 1);
 	}
 }

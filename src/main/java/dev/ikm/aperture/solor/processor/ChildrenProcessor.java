@@ -5,11 +5,8 @@ import dev.ikm.aperture.solor.SolorRequest;
 import dev.ikm.tinkar.common.id.IntIdSet;
 import dev.ikm.tinkar.common.id.PublicId;
 import dev.ikm.tinkar.common.id.PublicIds;
-import dev.ikm.tinkar.entity.ConceptEntity;
 import dev.ikm.tinkar.entity.Entity;
 import dev.ikm.tinkar.entity.EntityHandle;
-import dev.ikm.tinkar.entity.Field;
-import dev.ikm.tinkar.terms.ConceptFacade;
 import dev.ikm.tinkar.terms.TinkarTermV2;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -19,8 +16,6 @@ import java.util.*;
 
 @Component
 public class ChildrenProcessor implements KnowledgeProcessor{
-
-	private static final int CHILDREN_LIMIT = 20;
 
 	@Override
 	public void process(SolorGenerationContext solorGenerationContext, PublicId conceptId) {
@@ -40,7 +35,7 @@ public class ChildrenProcessor implements KnowledgeProcessor{
 							.filter(Optional::isPresent)
 							.map(Optional::get)
 							.sorted(Comparator.comparing(concept -> solorRequest.languageCalculatorWithCache().getDescriptionText(concept.nid()).orElse("TEXT NOT FOUND")))
-							.limit(CHILDREN_LIMIT)
+							.limit(solorRequest.childrenDepth())
 							.map(concept -> concept.publicId().asUuidList().get(0))
 							.toList();
 
@@ -56,7 +51,7 @@ public class ChildrenProcessor implements KnowledgeProcessor{
 						conceptSubject.addProperty(SolorVocabulary.HAS_CHILD, child);
 
 						// Add Child Concept to SolorGenerationContext
-						solorGenerationContext.requireTargetConcept(PublicIds.of(childUUID));
+						solorGenerationContext.requireConcept(PublicIds.of(childUUID));
 					});
 				});
 	}

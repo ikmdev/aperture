@@ -20,8 +20,6 @@ import java.util.UUID;
 @Component
 public class ParentProcessor implements KnowledgeProcessor{
 
-	private static final int PARENT_LIMIT = 10;
-
 	@Override
 	public void process(SolorGenerationContext solorGenerationContext, PublicId conceptId) {
 		SolorRequest solorRequest = solorGenerationContext.getSolorRequest();
@@ -40,7 +38,7 @@ public class ParentProcessor implements KnowledgeProcessor{
 							.filter(Optional::isPresent)
 							.map(Optional::get)
 							.sorted(Comparator.comparing(concept -> solorRequest.languageCalculatorWithCache().getDescriptionText(concept.nid()).orElse("TEXT NOT FOUND")))
-							.limit(PARENT_LIMIT)
+							.limit(solorRequest.parentDepth())
 							.map(concept -> concept.publicId().asUuidList().get(0))
 							.toList();
 
@@ -56,7 +54,7 @@ public class ParentProcessor implements KnowledgeProcessor{
 						conceptSubject.addProperty(SolorVocabulary.HAS_PARENT, parent);
 
 						// Add Parent Concept to SolorGenerationContext
-						solorGenerationContext.requireTargetConcept(PublicIds.of(parentUUID));
+						solorGenerationContext.requireConcept(PublicIds.of(parentUUID));
 					});
 				});
 	}

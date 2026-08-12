@@ -24,7 +24,7 @@ public interface KnowledgeProcessor {
 		Latest<EntityVersion> latest = solorGenerationContext.getSolorRequest().stampCalculatorWithCache().latest(nid);
 		State state = Entity.getStamp(latest.get().stampNid()).state();
 		UUID statusId = state.publicId().asUuidList().get(0);
-		solorGenerationContext.requireTargetConcept(state.publicId());
+		solorGenerationContext.requireConcept(state.publicId());
 		return solorGenerationContext.getSolorModel().createResource(SolorVocabulary.NAMESPACE + statusId);
 	}
 }

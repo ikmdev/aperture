@@ -46,7 +46,7 @@ public class SynonymProcessor implements KnowledgeProcessor {
 								.addProperty(SolorVocabulary.HAS_DESCRIPTION, descriptionNode);
 
 						// Add Identifier Concept to SolorGenerationContext
-						solorGenerationContext.requireTargetConcept(caseSensitivityFacade.publicId());
+						solorGenerationContext.requireConcept(caseSensitivityFacade.publicId());
 					}
 				});
 	}

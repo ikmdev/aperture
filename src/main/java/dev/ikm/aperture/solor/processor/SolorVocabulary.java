@@ -35,6 +35,11 @@ public class SolorVocabulary {
 	public static final Property HAS_TOTAL_CHILDREN = ResourceFactory.createProperty(NAMESPACE, "has_total_children");
 	public static final Property HAS_CHILD = ResourceFactory.createProperty(NAMESPACE, "has_child");
 
+	public static final Property HAS_FEATURE = ResourceFactory.createProperty(NAMESPACE, "has_feature");
+	public static final Property HAS_FEATURE_TYPE  = ResourceFactory.createProperty(NAMESPACE, "has_feature_type");
+	public static final Property HAS_FEATURE_VALUE = ResourceFactory.createProperty(NAMESPACE, "has_feature_value");
+	public static final Property HAS_FEATURE_CONCRETE_OPERATOR = ResourceFactory.createProperty(NAMESPACE, "has_feature_concreteOperator");
+
 	// Private constructor prevents instantiation
 	private SolorVocabulary() {}
 
