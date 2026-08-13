@@ -122,11 +122,17 @@ public class SolorPipeline {
 				    ?concept rdfs:label ?conceptLabel .
 				
 				    {
-				        # Flatten Descriptions
-				        ?concept solor:has_description ?descNode .
-				        { ?descNode solor:has_synonym ?synonym . }
-				        UNION
-				        { ?descNode solor:has_fully_qualified_name ?fqn . }
+				        # Flatten Descriptions and strip language tags using STR()
+				                ?concept solor:has_description ?descNode .
+				                {\s
+				                    ?descNode solor:has_synonym ?rawSynonym .\s
+				                    BIND(STR(?rawSynonym) AS ?synonym)
+				                }
+				                UNION
+				                {\s
+				                    ?descNode solor:has_fully_qualified_name ?rawFqn .\s
+				                    BIND(STR(?rawFqn) AS ?fqn)
+				                }
 				    }
 				    UNION
 				    {
