@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: aperture:${APP_VERSION:-latest}
     container_name: aperture
     ports:
       - "${SERVER_PORT:-8080}:8080"

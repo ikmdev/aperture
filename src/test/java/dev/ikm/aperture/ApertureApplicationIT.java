@@ -45,13 +45,9 @@ class ApertureApplicationIT {
 	@LocalServerPort
 	private int port;
 
-	@Value("${app.api.key}")
-	private String apiKey;
-
 	private RestTestClient buildRestTestClient() {
 		return RestTestClient.bindToServer()
 				.baseUrl("http://localhost:" + port)
-				.defaultHeader("X-API-KEY", apiKey)
 				.build();
 	}
 

@@ -208,7 +208,7 @@ public class SolorPipeline {
 				        BIND(IF(BOUND(?objectIdVal), CONCAT(?objectSysLabel, ": ", ?objectIdVal, " | ", ?rawObjectLabel), ?rawObjectLabel) AS ?objectLabel)
 				
 				        # 4. Bind the human-readable predicate
-				        BIND(IRI(CONCAT("https://www.ikm.dev/solor/", REPLACE(?predLabel, " ", "_"))) AS ?readablePredicate)
+				        BIND(IRI(CONCAT("https://www.ikm.dev/solor/", LCASE(REPLACE(?predLabel, " ", "_")))) AS ?readablePredicate)
 				    }
 				}
 				""";
